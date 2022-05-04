@@ -1,10 +1,6 @@
 package group12.biciurjc.service;
 
-import group12.biciurjc.model.Bicycle;
-import group12.biciurjc.model.Station;
 import group12.biciurjc.model.User;
-import group12.biciurjc.repository.BicycleRepository;
-import group12.biciurjc.repository.StationRepository;
 import group12.biciurjc.repository.UserRepository;
 import org.hibernate.engine.jdbc.BlobProxy;
 import org.springframework.beans.factory.annotation.Autowired;
