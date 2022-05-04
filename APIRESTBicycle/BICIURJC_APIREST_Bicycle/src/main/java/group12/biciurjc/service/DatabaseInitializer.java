@@ -2,15 +2,9 @@ package group12.biciurjc.service;
 
 import group12.biciurjc.model.Bicycle;
 import group12.biciurjc.model.Station;
-import group12.biciurjc.model.User;
 import group12.biciurjc.repository.BicycleRepository;
 import group12.biciurjc.repository.StationRepository;
-import group12.biciurjc.repository.UserRepository;
-import org.hibernate.engine.jdbc.BlobProxy;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -26,8 +20,7 @@ public class DatabaseInitializer {
     private BicycleRepository bicycleRepository;
 
     @PostConstruct
-    public void init() throws IOException {
-
+    public void init() {
         //Stations
         Station station1 = new Station("ABC1234567891234", 40.33542999652435, -3.8738490114249413, 5);
         Station station2 = new Station("CBA9876543219876", 40.3504767687328, -3.844611979120157, 10);
@@ -65,5 +58,4 @@ public class DatabaseInitializer {
         bicycleRepository.save(bicycle8);
         bicycleRepository.save(bicycle9);
     }
-
 }
