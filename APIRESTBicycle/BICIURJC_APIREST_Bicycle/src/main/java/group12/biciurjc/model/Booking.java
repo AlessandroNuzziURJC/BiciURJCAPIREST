@@ -18,16 +18,18 @@ public class Booking {
 
     private long userId;
     private Date date;
+    private int price;
 
     public Booking() {
 
     }
 
-    public Booking(Station station, Bicycle bicycle, long userId) {
+    public Booking(Station station, Bicycle bicycle, long userId, int price) {
         this.station = station;
         this.bicycle = bicycle;
         this.userId = userId;
         setDate();
+        this.price = price;
     }
 
     public long getId() {
@@ -69,5 +71,13 @@ public class Booking {
     public void setDate() {
         long miliseconds = System.currentTimeMillis();
         date = new Date(miliseconds);
+    }
+
+    public int getPrice() {
+        return price;
+    }
+
+    public void setPrice(int price) {
+        this.price = price;
     }
 }
