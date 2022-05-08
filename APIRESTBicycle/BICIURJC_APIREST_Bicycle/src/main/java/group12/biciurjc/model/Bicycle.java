@@ -2,9 +2,6 @@ package group12.biciurjc.model;
 
 import javax.persistence.*;
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 @Entity
 public class Bicycle {
@@ -23,10 +20,6 @@ public class Bicycle {
     @ManyToOne
     private Station station;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Enumerated(value = EnumType.STRING)
-    private List<Status> statusTransitions = new ArrayList<>();
-
     public Bicycle() {
 
     }
@@ -35,7 +28,7 @@ public class Bicycle {
         this.serialNumber = serialNumber;
         this.model = model;
         setDate();
-        setStatus(Status.WITHOUT_BASE);
+        status = Status.WITHOUT_BASE;
     }
 
     public long getId() {
@@ -77,11 +70,6 @@ public class Bicycle {
 
     public void setStatus(Status status) {
         this.status = status;
-        statusTransitions.add(status);
-    }
-
-    public List<Status> getStatusTransitions() {
-        return statusTransitions;
     }
 
     public Station getStation() {
@@ -99,21 +87,5 @@ public class Bicycle {
             case RESERVED -> "RESERVADA";
             case WITHDRAWAL -> "BAJA";
         };
-    }
-
-    public String getStatusString(){
-        return statusTranslate(status);
-    }
-
-    public List<String> getStatusStringList(){
-        List<String> list = new ArrayList<>(statusTransitions.size());
-
-        int i = 1;
-        for (Status status : statusTransitions) {
-            list.add(i++ + ".    " + statusTranslate(status));
-        }
-        Collections.reverse(list);
-
-        return list;
     }
 }

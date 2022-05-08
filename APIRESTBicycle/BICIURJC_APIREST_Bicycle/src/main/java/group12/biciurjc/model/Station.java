@@ -113,8 +113,4 @@ public class Station {
         bicycle.setStatus(Status.WITHOUT_BASE);
         bicycle.setStation(null);
     }
-
-    public String getSpanishFormat() {
-        return date.toString().substring(8, 10)+ "/" + date.toString().substring(5, 7) + "/" + date.toString().substring(0, 4);
-    }
 }
