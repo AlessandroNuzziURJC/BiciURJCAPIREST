@@ -3,6 +3,7 @@ package group12.biciurjc.controller;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import group12.biciurjc.model.Bicycle;
 import group12.biciurjc.model.Booking;
+import group12.biciurjc.model.DTO.BookingDTO;
 import group12.biciurjc.model.Station;
 import group12.biciurjc.model.Status;
 import group12.biciurjc.service.BicycleService;
@@ -20,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Optional;
@@ -43,7 +45,7 @@ public class BicycleRestController {
             description = "La reserva se ha realizado con éxito",
             content = {@Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation=Booking.class)
+                schema = @Schema(implementation=BookingDTO.class)
             )}
         ),
         @ApiResponse(
@@ -58,9 +60,9 @@ public class BicycleRestController {
         )
     })
     @PostMapping("api/reservas/")
-    private ResponseEntity<Booking> bookBicycle(@Parameter(description = "id de la estación en la que se encuentra la bicicleta") @RequestParam long stationId,
-                                                @Parameter(description = "id de la bicicleta que se va a reservar") @RequestParam long bicycleId,
-                                                @Parameter(description = "id del usuario que quiere reservar la bicicleta") @RequestParam long userId) {
+    private ResponseEntity<BookingDTO> bookBicycle(@Parameter(description = "id de la estación en la que se encuentra la bicicleta") @RequestParam long stationId,
+                                                   @Parameter(description = "id de la bicicleta que se va a reservar") @RequestParam long bicycleId,
+                                                   @Parameter(description = "id del usuario que quiere reservar la bicicleta") @RequestParam long userId) {
 
         Optional<Station> optionalStation = stationService.findById(stationId);
         Optional<Bicycle> optionalBicycle = bicycleService.findById(bicycleId);
@@ -73,23 +75,34 @@ public class BicycleRestController {
             boolean bikeIsInThisStation = bicycle.getStation().getId() == station.getId();
 
             if (station.isActive() && bikeIsInBase && bikeIsInThisStation) {
-                /*RestTemplate restTemplate = new RestTemplate();
+                RestTemplate restTemplate = new RestTemplate();
                 String url = "http://localhost:8081/api/users/" + userId + "/money";
-                ObjectNode data = restTemplate.patchForObject(url, 15, ObjectNode.class);*/
 
-                if (true) {
+                try {
+                    //At the moment, the price for booking a bike is fixed, 5€. Therefore, the deposit is 10€. Total = 15€
+                    ObjectNode data = restTemplate.patchForObject(url, 15, ObjectNode.class);
+                    String userName = data.get("name").asText();
+
                     station.deleteBicycle(bicycle);
                     bicycle.setStatus(Status.RESERVED);
-                    Booking booking = new Booking(station, bicycle, userId, 5); //At the moment, the price for booking a bike is fixed, 5€
+                    Booking booking = new Booking(station, bicycle, userId, userName, 5);
                     bookingService.save(booking);
 
-                    return new ResponseEntity<>(booking, HttpStatus.CREATED);
-                } else if (true) {
-                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-                }
-            }
+                    BookingDTO bookingDTO = new BookingDTO(booking.getId(), stationId, bicycleId, userId, userName, booking.getDate(), booking.getPrice());
 
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+                    return new ResponseEntity<>(bookingDTO, HttpStatus.CREATED);
+                } catch (HttpStatusCodeException exception) {
+                    HttpStatus status = exception.getStatusCode();
+
+                    if (status == HttpStatus.NOT_FOUND) {
+                        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                    } else {
+                        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+                    }
+                }
+            } else {
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

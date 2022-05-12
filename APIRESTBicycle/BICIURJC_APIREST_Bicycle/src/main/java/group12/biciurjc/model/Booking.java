@@ -17,6 +17,7 @@ public class Booking {
     private Bicycle bicycle;
 
     private long userId;
+    private String userName;
     private Date date;
     private int price;
 
@@ -24,10 +25,11 @@ public class Booking {
 
     }
 
-    public Booking(Station station, Bicycle bicycle, long userId, int price) {
+    public Booking(Station station, Bicycle bicycle, long userId, String userName, int price) {
         this.station = station;
         this.bicycle = bicycle;
         this.userId = userId;
+        this.userName = userName;
         setDate();
         this.price = price;
     }
@@ -62,6 +64,14 @@ public class Booking {
 
     public void setUserId(long userId) {
         this.userId = userId;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public Date getDate() {
