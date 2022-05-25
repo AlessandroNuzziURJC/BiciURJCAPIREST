@@ -1,5 +1,6 @@
 package group12.biciurjc.controller;
 
+import group12.biciurjc.model.DTO.UserDTO;
 import group12.biciurjc.model.User;
 import group12.biciurjc.service.UserService;
 import org.hibernate.engine.jdbc.BlobProxy;
@@ -39,10 +40,14 @@ public class UserRestController {
 
     //Get user with id
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUser(@PathVariable Long id){
+    public ResponseEntity<UserDTO> getUser(@PathVariable Long id){
         Optional<User> user = userService.findById(id);
+
         if (user.isPresent()){
-            return new ResponseEntity<>(user.get(), HttpStatus.OK);
+
+            UserDTO userDTO = new UserDTO(user.get().getName(), user.get().getId(), user.get().getBalance());
+
+            return new ResponseEntity<>(userDTO, HttpStatus.OK);
         }else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -69,13 +74,14 @@ public class UserRestController {
     //Post user
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
-    public User createUser(@RequestBody User user) {
+    public UserDTO createUser(@RequestBody User user) {
 
-        User newUSer = new User(user.getName(), passwordEncoder.encode(user.getEncondedPassword()), user.getBalance());
+        User newUser = new User(user.getName(), passwordEncoder.encode(user.getEncondedPassword()), user.getBalance());
+        UserDTO userDTO = new UserDTO(user.getName(), user.getId(), user.getBalance());
 
-        userService.save(newUSer);
+        userService.save(newUser);
 
-        return user;
+        return userDTO;
     }
 
     //Post user image
@@ -96,7 +102,7 @@ public class UserRestController {
 
     //Put user
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User updatedUser) throws SQLException {
+    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody User updatedUser) throws SQLException {
         if (userService.exist(id)) {
             User dbUser = userService.findById(id).orElseThrow();
 
@@ -110,8 +116,9 @@ public class UserRestController {
             updatedUser.setNewDate(dbUser.getDate());
             updatedUser.setId(id);
             userService.save(updatedUser);
+            UserDTO userDTO = new UserDTO(updatedUser.getName(), updatedUser.getId(), updatedUser.getBalance());
 
-            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+            return new ResponseEntity<>(userDTO, HttpStatus.OK);
         } else	{
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -119,7 +126,7 @@ public class UserRestController {
 
     //Delete user
     @DeleteMapping("/{id}")
-    public ResponseEntity<User> deleteUser(@PathVariable long id) {
+    public ResponseEntity<UserDTO> deleteUser(@PathVariable long id) {
         try {
             userService.delete(id);
             return new ResponseEntity<>(null, HttpStatus.OK);

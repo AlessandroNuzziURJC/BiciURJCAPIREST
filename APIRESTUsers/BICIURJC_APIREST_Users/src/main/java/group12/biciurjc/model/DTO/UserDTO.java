@@ -8,8 +8,9 @@ public class UserDTO {
     private String name;
     private Date date;
     private boolean active;
+    private double balance;
 
-    public UserDTO(String name) {
+    public UserDTO(String name, Long id, double balance) {
         this.name = name;
         setDate();
         active = true;
@@ -46,6 +47,14 @@ public class UserDTO {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance;
     }
 
     public String getSpanishFormat() {
