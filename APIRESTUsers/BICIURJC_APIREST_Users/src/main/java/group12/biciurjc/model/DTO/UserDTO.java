@@ -1,22 +1,26 @@
 package group12.biciurjc.model.DTO;
 
-import javax.persistence.*;
-import java.sql.Blob;
 import java.sql.Date;
 
 public class UserDTO {
 
+    private Long id;
     private String name;
     private Date date;
     private boolean active;
-
-    @Lob
-    private Blob imageFile;
 
     public UserDTO(String name) {
         this.name = name;
         setDate();
         active = true;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -42,14 +46,6 @@ public class UserDTO {
 
     public void setActive(boolean active) {
         this.active = active;
-    }
-
-    public Blob getImageFile() {
-        return imageFile;
-    }
-
-    public void setImageFile(Blob imageFile) {
-        this.imageFile = imageFile;
     }
 
     public String getSpanishFormat() {
