@@ -41,6 +41,10 @@ public class DatabaseInitializer {
         userRepository.save(user3);
         userRepository.save(user4);
         userRepository.save(user5);
+
+        User userApi1 = new User("Néstor Granado Pérez", passwordEncoder.encode("pass"), 12.55);
+        setProfileImage(userApi1, "/static/images/Nestor.jpg");
+        userRepository.save(userApi1);
     }
 
     private void setProfileImage(User user, String classpathResource) throws IOException {
