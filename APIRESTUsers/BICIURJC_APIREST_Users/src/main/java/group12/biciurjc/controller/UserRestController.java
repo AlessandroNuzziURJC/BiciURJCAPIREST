@@ -1,13 +1,14 @@
 package group12.biciurjc.controller;
 
 import group12.biciurjc.model.DTO.UserDTO;
+import group12.biciurjc.model.DTO.UserPostDTO;
+import group12.biciurjc.model.DTO.UserPutDTO;
 import group12.biciurjc.model.User;
 import group12.biciurjc.service.UserService;
 import org.hibernate.engine.jdbc.BlobProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,76 +31,62 @@ public class UserRestController {
 
     @Autowired
     private UserService userService;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    //Get all user
     @GetMapping("/")
-    public List<UserDTO> getUsers(){
-
+    public List<UserDTO> getUsers() {
         List<UserDTO> usersDTO = new ArrayList<>();
 
-        for(User user:userService.findAll()){
-            usersDTO.add(new UserDTO(user.getName(), user.getId(), user.getBalance()));
+        for (User user : userService.findAll()) {
+            usersDTO.add(new UserDTO(user.getId(), user.getLogin(), user.getName(), user.getDate(), user.isActive(), user.getBalance()));
         }
 
         return usersDTO;
     }
 
-    //Get user with id
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUser(@PathVariable Long id){
-        Optional<User> user = userService.findById(id);
+    public ResponseEntity<UserDTO> getUser(@PathVariable long id) {
+        Optional<User> optionalUser = userService.findById(id);
 
-        if (user.isPresent()){
-
-            UserDTO userDTO = new UserDTO(user.get().getName(), user.get().getId(), user.get().getBalance());
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            UserDTO userDTO = new UserDTO(user.getId(), user.getLogin(), user.getName(), user.getDate(), user.isActive(), user.getBalance());
 
             return new ResponseEntity<>(userDTO, HttpStatus.OK);
-        }else {
+        } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
-    //Get user image
     @GetMapping("/{id}/image")
     public ResponseEntity<Object> downloadImage(@PathVariable long id) throws SQLException {
-
         User user = userService.findById(id).orElseThrow();
 
         if (user.getImageFile() != null) {
-
             Resource file = new InputStreamResource(user.getImageFile().getBinaryStream());
 
             return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, "image/jpeg")
                     .contentLength(user.getImageFile().length()).body(file);
-
         } else {
             return ResponseEntity.notFound().build();
         }
     }
 
-    //Post user
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDTO createUser(@RequestBody User user) {
-
-        User newUser = new User(user.getName(), passwordEncoder.encode(user.getEncondedPassword()), user.getBalance());
-
+    public UserDTO createUser(@RequestBody UserPostDTO user) {
+        User newUser = new User(user.getLogin(), user.getName(), passwordEncoder.encode(user.getPassword()));
         userService.save(newUser);
 
-        UserDTO userDTO = new UserDTO(newUser.getName(), newUser.getId(), newUser.getBalance());
-
+        UserDTO userDTO = new UserDTO(newUser.getId(), newUser.getLogin(), newUser.getName(), newUser.getDate(), newUser.isActive(), newUser.getBalance());
         return userDTO;
     }
 
-    //Post user image
     @PostMapping("/{id}/image")
-    public ResponseEntity<Object> uploadImage(@PathVariable long id, @RequestParam MultipartFile imageFile)
-            throws IOException {
-
+    public ResponseEntity<Object> uploadImage(@PathVariable long id, @RequestParam MultipartFile imageFile) throws IOException {
         User user = userService.findById(id).orElseThrow();
-
         URI location = fromCurrentRequest().build().toUri();
 
         user.setImageFile(BlobProxy.generateProxy(imageFile.getInputStream(), imageFile.getSize()));
@@ -108,82 +95,82 @@ public class UserRestController {
         return ResponseEntity.created(location).build();
     }
 
-
-    //Put user
     @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody User updatedUser) throws SQLException {
+    public ResponseEntity<UserDTO> updateUser(@PathVariable long id, @RequestBody UserPutDTO updatedUser) {
         if (userService.exist(id)) {
             User dbUser = userService.findById(id).orElseThrow();
 
-            if (updatedUser.getImageFile() != null) {
-                if (dbUser.getImageFile() != null) {
-                    updatedUser.setImageFile(BlobProxy.generateProxy(dbUser.getImageFile().getBinaryStream(),
-                            dbUser.getImageFile().length()));
-                }
-            }
+            dbUser.setLogin(updatedUser.getLogin());
+            dbUser.setName(updatedUser.getName());
+            dbUser.setEncondedPassword(passwordEncoder.encode(updatedUser.getPassword()));
+            dbUser.setActive(updatedUser.isActive());
+            dbUser.setBalance(updatedUser.getBalance());
 
-            updatedUser.setNewDate(dbUser.getDate());
-            updatedUser.setId(id);
-            updatedUser.setEncondedPassword(passwordEncoder.encode(updatedUser.getEncondedPassword()));
-            userService.save(updatedUser);
-            UserDTO userDTO = new UserDTO(updatedUser.getName(), updatedUser.getId(), updatedUser.getBalance());
+            userService.save(dbUser);
 
+            UserDTO userDTO = new UserDTO(dbUser.getId(), dbUser.getLogin(), dbUser.getName(), dbUser.getDate(), dbUser.isActive(), dbUser.getBalance());
             return new ResponseEntity<>(userDTO, HttpStatus.OK);
         } else	{
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
-    //Delete user
     @DeleteMapping("/{id}")
     public ResponseEntity<UserDTO> deleteUser(@PathVariable long id) {
-        try {
-            userService.delete(id);
-            return new ResponseEntity<>(null, HttpStatus.OK);
+        Optional<User> optionalUser = userService.findById(id);
 
-        } catch (EmptyResultDataAccessException e) {
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        }
-    }
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setActive(false);
 
-    //Delete user image
-    @DeleteMapping("/{id}/image")
-    public ResponseEntity<Object> deleteImage(@PathVariable long id) throws IOException {
-
-        User user = userService.findById(id).orElseThrow();
-
-        user.setImageFile(null);
-
-        userService.save(user);
-
-        return ResponseEntity.noContent().build();
-    }
-
-    //balance operation
-    @PutMapping("/{id}/balance")
-    public ResponseEntity<UserDTO> payBike(@PathVariable long id, @RequestParam double balance){
-        if (userService.exist(id)){
-            User user = userService.findById(id).orElseThrow();
-            if(balance < 0){
-                if (user.isActive() && user.getBalance() >= (balance * -1)) {
-                    user.setBalance(doOperation(user.getBalance(), balance));
-                }else {
-                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-                }
-            }else {
-                user.setBalance(doOperation(user.getBalance(), balance));
-            }
-            userService.save(user);
-            UserDTO userDTO = new UserDTO(user.getName(), user.getId(), user.getBalance());
-
+            UserDTO userDTO = new UserDTO(user.getId(), user.getLogin(), user.getName(), user.getDate(), user.isActive(), user.getBalance());
             return new ResponseEntity<>(userDTO, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
-    private double doOperation(double userBalance, double balance){
-        return (userBalance + balance);
+    @DeleteMapping("/{id}/image")
+    public ResponseEntity<Object> deleteImage(@PathVariable long id) {
+        Optional<User> optionalUser = userService.findById(id);
+
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setImageFile(null);
+
+            userService.save(user);
+
+            return ResponseEntity.noContent().build();
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
+    @PutMapping("/{id}/balance")
+    public ResponseEntity<UserDTO> updateBalance(@PathVariable long id, @RequestParam int balance) {
+        if (userService.exist(id)){
+            User user = userService.findById(id).orElseThrow();
+
+            if (balance < 0) {
+                if (user.isActive() && user.getBalance() >= (balance * -1)) {
+                    user.setBalance(doOperation(user.getBalance(), balance));
+                } else {
+                    return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+                }
+            } else {
+                user.setBalance(doOperation(user.getBalance(), balance));
+            }
+
+            userService.save(user);
+
+            UserDTO userDTO = new UserDTO(user.getId(), user.getLogin(), user.getName(), user.getDate(), user.isActive(), user.getBalance());
+            return new ResponseEntity<>(userDTO, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    private int doOperation(int userBalance, int balance) {
+        return userBalance + balance;
+    }
 }

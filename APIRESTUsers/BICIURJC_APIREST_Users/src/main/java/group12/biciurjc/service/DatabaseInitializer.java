@@ -24,11 +24,11 @@ public class DatabaseInitializer {
     @PostConstruct
     public void init() throws IOException {
         //Users
-        User user1 = new User("Juan Carlos Moreno García", passwordEncoder.encode("pass"));
-        User user2 = new User("Alessandro Nuzzi Herrero", passwordEncoder.encode("pass"));
-        User user3 = new User("Jhostin David Ortiz Moreno", passwordEncoder.encode("pass"));
-        User user4 = new User("Néstor Granado Pérez", passwordEncoder.encode("pass"));
-        User user5 = new User("Nuria Mateos Bravo", passwordEncoder.encode("pass"));
+        User user1 = new User("juanCarlos", "Juan Carlos Moreno García", passwordEncoder.encode("pass"));
+        User user2 = new User("alessandro", "Alessandro Nuzzi Herrero", passwordEncoder.encode("pass"));
+        User user3 = new User("jhostin", "Jhostin David Ortiz Moreno", passwordEncoder.encode("pass"));
+        User user4 = new User("nestor", "Néstor Granado Pérez", passwordEncoder.encode("pass"));
+        User user5 = new User("sara", "Sara Mateos Bravo", passwordEncoder.encode("pass"));
 
         setProfileImage(user1, "/static/images/JuanCarlos.jpg");
         setProfileImage(user2, "/static/images/Alessandro.jpg");
@@ -36,17 +36,13 @@ public class DatabaseInitializer {
         setProfileImage(user4, "/static/images/Nestor.jpg");
         setProfileImage(user5, "/static/images/Sara.jpg");
 
-        user1.setBalance(7000.00);
+        user1.setBalance(7000);
 
         userRepository.save(user1);
         userRepository.save(user2);
         userRepository.save(user3);
         userRepository.save(user4);
         userRepository.save(user5);
-
-        User userApi1 = new User("Néstor Granado Pérez", passwordEncoder.encode("pass"), 12.55);
-        setProfileImage(userApi1, "/static/images/Nestor.jpg");
-        userRepository.save(userApi1);
     }
 
     private void setProfileImage(User user, String classpathResource) throws IOException {

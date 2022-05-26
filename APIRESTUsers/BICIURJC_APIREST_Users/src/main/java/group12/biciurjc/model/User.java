@@ -1,6 +1,5 @@
 package group12.biciurjc.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sun.istack.NotNull;
 
 import javax.persistence.*;
@@ -15,6 +14,9 @@ public class User {
     private long id;
 
     @NotNull
+    private String login;
+
+    @NotNull
     private String name;
 
     @NotNull
@@ -27,34 +29,22 @@ public class User {
     private boolean active;
 
     @NotNull
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long login;
-
-    @NotNull
-    private double balance;
+    private int balance;
 
     @Lob
     private Blob imageFile;
-
-
 
     public User() {
 
     }
 
-    public User(String name, String encondedPassword) {
+    public User(String login, String name, String encondedPassword) {
+        this.login = login;
         this.name = name;
         this.encondedPassword = encondedPassword;
         setDate();
         active = true;
-    }
-
-    public User(String name, String encondedPassword, double balance) {
-        this.name = name;
-        this.encondedPassword = encondedPassword;
-        setDate();
-        this.active = true;
-        this.balance = balance;
+        balance = 0;
     }
 
     public long getId() {
@@ -63,6 +53,14 @@ public class User {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
     }
 
     public String getName() {
@@ -90,10 +88,6 @@ public class User {
         date = new Date(miliseconds);
     }
 
-    public void setNewDate(Date date) {
-       this.date = date;
-    }
-
     public boolean isActive() {
         return active;
     }
@@ -110,23 +104,11 @@ public class User {
         this.imageFile = imageFile;
     }
 
-    public String getSpanishFormat() {
-        return date.toString().substring(8, 10)+ "/" + date.toString().substring(5, 7) + "/" + date.toString().substring(0, 4);
-    }
-
-    public long getLogin() {
-        return login;
-    }
-
-    public void setLogin(long login) {
-        this.login = login;
-    }
-
-    public double getBalance() {
+    public int getBalance() {
         return balance;
     }
 
-    public void setBalance(double balance) {
+    public void setBalance(int balance) {
         this.balance = balance;
     }
 }

@@ -1,31 +1,19 @@
 package group12.biciurjc.model.DTO;
 
-import java.sql.Date;
+public class UserPutDTO {
 
-public class UserDTO {
-
-    private long userId;
     private String login;
     private String name;
-    private Date date;
+    private String password;
     private boolean active;
     private int balance;
 
-    public UserDTO(long userId, String login, String name, Date date, boolean active, int balance) {
-        this.userId = userId;
+    public UserPutDTO(String login, String name, String password, boolean active, int balance) {
         this.login = login;
         this.name = name;
-        this.date = date;
+        this.password = password;
         this.active = active;
         this.balance = balance;
-    }
-
-    public long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(long userId) {
-        this.userId = userId;
     }
 
     public String getLogin() {
@@ -44,12 +32,12 @@ public class UserDTO {
         this.name = name;
     }
 
-    public Date getDate() {
-        return date;
+    public String getPassword() {
+        return password;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public boolean isActive() {
