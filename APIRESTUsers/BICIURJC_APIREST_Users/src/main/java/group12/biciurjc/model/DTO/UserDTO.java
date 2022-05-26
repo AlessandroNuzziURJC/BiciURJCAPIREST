@@ -12,6 +12,8 @@ public class UserDTO {
 
     public UserDTO(String name, Long id, double balance) {
         this.name = name;
+        this.id = id;
+        this.balance = balance;
         setDate();
         active = true;
     }

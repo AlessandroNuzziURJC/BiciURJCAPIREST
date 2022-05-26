@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.net.URI;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,8 +35,15 @@ public class UserRestController {
 
     //Get all user
     @GetMapping("/")
-    public List<User> getUsers(){
-        return userService.findAll();
+    public List<UserDTO> getUsers(){
+
+        List<UserDTO> usersDTO = new ArrayList<>();
+
+        for(User user:userService.findAll()){
+            usersDTO.add(new UserDTO(user.getName(), user.getId(), user.getBalance()));
+        }
+
+        return usersDTO;
     }
 
     //Get user with id
@@ -149,13 +157,13 @@ public class UserRestController {
         return ResponseEntity.noContent().build();
     }
 
-    //Pay bike
-    @PutMapping("/{id}/money")
+    //balance operation
+    @PutMapping("/{id}/balance")
     public ResponseEntity<UserDTO> payBike(@PathVariable long id, @RequestParam double balance){
         if (userService.exist(id)){
             User user = userService.findById(id).orElseThrow();
             if (user.isActive() && user.getBalance() >= balance){
-                user.setBalance(user.getBalance() - balance);
+                user.setBalance(user.getBalance() + balance);
 
                 userService.save(user);
                 UserDTO userDTO = new UserDTO(user.getName(), user.getId(), user.getBalance());
@@ -164,22 +172,6 @@ public class UserRestController {
             }else {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-    }
-
-    //Deposit bike
-    @PutMapping("/{id}/depositReturn")
-    public ResponseEntity<UserDTO> depositReturn(@PathVariable long id, @RequestParam double deposit){
-        if (userService.exist(id)){
-            User user = userService.findById(id).orElseThrow();
-            user.setBalance(user.getBalance() + deposit);
-
-            userService.save(user);
-            UserDTO userDTO = new UserDTO(user.getName(), user.getId(), user.getBalance());
-
-            return new ResponseEntity<>(userDTO, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
