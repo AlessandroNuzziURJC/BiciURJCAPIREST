@@ -316,6 +316,4 @@ public class UserRestController {
     private int doOperation(int userBalance, int balance) {
         return userBalance + balance;
     }
-
-
 }
