@@ -5,6 +5,13 @@ import group12.biciurjc.model.DTO.UserPostDTO;
 import group12.biciurjc.model.DTO.UserPutDTO;
 import group12.biciurjc.model.User;
 import group12.biciurjc.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.hibernate.engine.jdbc.BlobProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -35,6 +42,17 @@ public class UserRestController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Operation(summary = "Devuelve todos los usuarios de la aplicación")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "La lista de usuarios se ha devuelto correctamente",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation=UserDTO.class))
+                    )}
+            )
+    })
     @GetMapping("/")
     public List<UserDTO> getUsers() {
         List<UserDTO> usersDTO = new ArrayList<>();
@@ -46,8 +64,24 @@ public class UserRestController {
         return usersDTO;
     }
 
+    @Operation(summary = "Devuelve el usuario solicitado")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "El usuario se ha encontrado y devuelto correctamente",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation=UserDTO.class)
+                    )}
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "El usuario no se ha encontrado",
+                    content = @Content
+            )
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUser(@PathVariable long id) {
+    public ResponseEntity<UserDTO> getUser(@Parameter(description = "id del usuario") @PathVariable long id) {
         Optional<User> optionalUser = userService.findById(id);
 
         if (optionalUser.isPresent()) {
@@ -60,23 +94,51 @@ public class UserRestController {
         }
     }
 
+    @Operation(summary = "Devuelve la imagen del usuario solicitado")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "El usuario se ha encontrado y la imagen se ha devuelto correctamente",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "El usuario no se ha encontrado o no tiene imagen",
+                    content = @Content
+            )
+    })
     @GetMapping("/{id}/image")
-    public ResponseEntity<Object> downloadImage(@PathVariable long id) throws SQLException {
-        User user = userService.findById(id).orElseThrow();
+    public ResponseEntity<Object> downloadImage(@Parameter(description = "id del usuario") @PathVariable long id) throws SQLException {
+        Optional<User> optionalUser = userService.findById(id);
 
-        if (user.getImageFile() != null) {
-            Resource file = new InputStreamResource(user.getImageFile().getBinaryStream());
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
 
-            return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, "image/jpeg")
-                    .contentLength(user.getImageFile().length()).body(file);
-        } else {
-            return ResponseEntity.notFound().build();
+            if (user.getImageFile() != null) {
+                Resource file = new InputStreamResource(user.getImageFile().getBinaryStream());
+
+                return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, "image/jpeg")
+                        .contentLength(user.getImageFile().length()).body(file);
+            }
         }
+
+        return ResponseEntity.notFound().build();
     }
 
+    @Operation(summary = "Crea un nuevo usuario")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "El usuario se ha creado correctamente",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation=UserDTO.class)
+                    )}
+            )
+    })
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDTO createUser(@RequestBody UserPostDTO user) {
+    public UserDTO createUser(@Parameter(description = "nuevo usuario") @RequestBody UserPostDTO user) {
         User newUser = new User(user.getLogin(), user.getName(), passwordEncoder.encode(user.getPassword()));
         userService.save(newUser);
 
@@ -84,8 +146,18 @@ public class UserRestController {
         return userDTO;
     }
 
+    @Operation(summary = "Actualiza la imagen del usuario solicitado")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "La imagen se ha guardado correctamente",
+                    content = @Content
+            )
+    })
     @PostMapping("/{id}/image")
-    public ResponseEntity<Object> uploadImage(@PathVariable long id, @RequestParam MultipartFile imageFile) throws IOException {
+    public ResponseEntity<Object> uploadImage(@Parameter(description = "id del usuario") @PathVariable long id,
+                                              @Parameter(description = "imagen") @RequestParam MultipartFile imageFile) throws IOException {
+
         User user = userService.findById(id).orElseThrow();
         URI location = fromCurrentRequest().build().toUri();
 
@@ -95,8 +167,26 @@ public class UserRestController {
         return ResponseEntity.created(location).build();
     }
 
+    @Operation(summary = "Actualiza el usuario solicitado")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "El usuario se ha actualizado correctamente",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation=UserDTO.class)
+                    )}
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "El usuario no se ha encontrado",
+                    content = @Content
+            )
+    })
     @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable long id, @RequestBody UserPutDTO updatedUser) {
+    public ResponseEntity<UserDTO> updateUser(@Parameter(description = "id del usuario") @PathVariable long id,
+                                              @Parameter(description = "usuario con los campos a actualizar") @RequestBody UserPutDTO updatedUser) {
+
         if (userService.exist(id)) {
             User dbUser = userService.findById(id).orElseThrow();
 
@@ -115,8 +205,24 @@ public class UserRestController {
         }
     }
 
+    @Operation(summary = "Elimina el usuario solicitado, quedando este como inactivo")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "El usuario se ha eliminado correctamente",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation=UserDTO.class)
+                    )}
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "El usuario no se ha encontrado",
+                    content = @Content
+            )
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<UserDTO> deleteUser(@PathVariable long id) {
+    public ResponseEntity<UserDTO> deleteUser(@Parameter(description = "id del usuario") @PathVariable long id) {
         Optional<User> optionalUser = userService.findById(id);
 
         if (optionalUser.isPresent()) {
@@ -130,8 +236,21 @@ public class UserRestController {
         }
     }
 
+    @Operation(summary = "Elimina la imagen del usuario solicitado")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "La imagen del usuario se ha eliminado correctamente",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "El usuario no se ha encontrado",
+                    content = @Content
+            )
+    })
     @DeleteMapping("/{id}/image")
-    public ResponseEntity<Object> deleteImage(@PathVariable long id) {
+    public ResponseEntity<Object> deleteImage(@Parameter(description = "id del usuario") @PathVariable long id) {
         Optional<User> optionalUser = userService.findById(id);
 
         if (optionalUser.isPresent()) {
@@ -146,8 +265,30 @@ public class UserRestController {
         }
     }
 
+    @Operation(summary = "Actualiza el saldo del usuario solicitado")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "El saldo del usuario se ha actualizado correctamente",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation=UserDTO.class)
+                    )}
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "El usuario no se ha encontrado",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "El usuario no está activo o no tiene suficiente dinero para alquilar la bicicleta",
+                    content = @Content
+            )
+    })
     @PutMapping("/{id}/balance")
-    public ResponseEntity<UserDTO> updateBalance(@PathVariable long id, @RequestParam int balance) {
+    public ResponseEntity<UserDTO> updateBalance(@Parameter(description = "id del usuario") @PathVariable long id,
+                                                 @Parameter(description = "dinero a añadir o quitar del saldo del usuario") @RequestParam int balance) {
         if (userService.exist(id)){
             User user = userService.findById(id).orElseThrow();
 
