@@ -1,5 +1,7 @@
 package group12.biciurjc.model;
 
+import com.sun.istack.NotNull;
+
 import javax.persistence.*;
 import java.sql.Blob;
 import java.sql.Date;
@@ -11,10 +13,23 @@ public class User {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
+    @NotNull
+    private String login;
+
+    @NotNull
     private String name;
+
+    @NotNull
     private String encondedPassword;
+
+    @NotNull
     private Date date;
+
+    @NotNull
     private boolean active;
+
+    @NotNull
+    private int balance;
 
     @Lob
     private Blob imageFile;
@@ -23,11 +38,13 @@ public class User {
 
     }
 
-    public User(String name, String encondedPassword) {
+    public User(String login, String name, String encondedPassword) {
+        this.login = login;
         this.name = name;
         this.encondedPassword = encondedPassword;
         setDate();
         active = true;
+        balance = 0;
     }
 
     public long getId() {
@@ -36,6 +53,14 @@ public class User {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
     }
 
     public String getName() {
@@ -79,7 +104,11 @@ public class User {
         this.imageFile = imageFile;
     }
 
-    public String getSpanishFormat() {
-        return date.toString().substring(8, 10)+ "/" + date.toString().substring(5, 7) + "/" + date.toString().substring(0, 4);
+    public int getBalance() {
+        return balance;
+    }
+
+    public void setBalance(int balance) {
+        this.balance = balance;
     }
 }
