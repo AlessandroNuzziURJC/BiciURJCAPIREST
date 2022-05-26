@@ -43,6 +43,13 @@ public class BicycleRestController {
     @Autowired
     private ReturnService returnService;
 
+    private static RestTemplate restTemplate = new RestTemplate();
+
+    private static final String URL_USERS_APIREST = "http://localhost:8081/api/users/";
+
+    private static final int PAYMENT = 5;
+    private static final int DEPOSIT = 10;
+
     @Operation(summary = "Crea una nueva reserva para un usuario de una bicicleta asociada a una estación")
     @ApiResponses(value = {
         @ApiResponse(
@@ -65,7 +72,7 @@ public class BicycleRestController {
         )
     })
     @PostMapping("api/reservas/")
-    private ResponseEntity<BookingDTO> bookBicycle(@Parameter(description = "id de la estación en la que se encuentra la bicicleta") @RequestParam long stationId,
+    public ResponseEntity<BookingDTO> bookBicycle(@Parameter(description = "id de la estación en la que se encuentra la bicicleta") @RequestParam long stationId,
                                                    @Parameter(description = "id de la bicicleta que se va a reservar") @RequestParam long bicycleId,
                                                    @Parameter(description = "id del usuario que quiere reservar la bicicleta") @RequestParam long userId) {
 
@@ -80,17 +87,17 @@ public class BicycleRestController {
             boolean bikeIsInThisStation = bicycle.getStation().getId() == station.getId();
 
             if (station.isActive() && bikeIsInBase && bikeIsInThisStation) {
-                RestTemplate restTemplate = new RestTemplate();
-                String url = "http://localhost:8081/api/users/" + userId + "/money";
+
+                String url = URL_USERS_APIREST + userId + "/money";
 
                 try {
                     //At the moment, the price for booking a bike is fixed, 5€. Therefore, the deposit is 10€. Total = 15€
-                    ObjectNode data = restTemplate.patchForObject(url, 15, ObjectNode.class);
+                    ObjectNode data = restTemplate.patchForObject(url, -(PAYMENT + DEPOSIT), ObjectNode.class);
                     String userName = data.get("name").asText();
 
                     station.deleteBicycle(bicycle);
                     bicycle.setStatus(RESERVED);
-                    Booking booking = new Booking(station, bicycle, userId, userName, 5);
+                    Booking booking = new Booking(station, bicycle, userId, userName, PAYMENT);
                     bookingService.save(booking);
 
                     BookingDTO bookingDTO = new BookingDTO(booking.getId(), stationId, bicycleId, userId, userName, booking.getDate(), booking.getPrice());
@@ -113,8 +120,31 @@ public class BicycleRestController {
         }
     }
 
-    @PostMapping("/api/devolucion")
-    private ResponseEntity<ReturnDTO> returnBicycle(@RequestParam long stationId, @RequestParam long bicycleId, @RequestParam long userId){
+    @Operation(summary = "Crea una nueva devolución de una bicicleta por parte de un usuario a una estación")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "La devolución se ha realizado con éxito",
+                    content = {@Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation=ReturnDTO.class)
+                    )}
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Estación, bicicleta o usuario no encontrado",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "La estación no está activa, la bicicleta no está en estado 'RSERVADO', o no caben más bicicletas en la estación",
+                    content = @Content
+            )
+    })
+    @PostMapping("/api/devoluciones/")
+    public ResponseEntity<ReturnDTO> returnBicycle(@Parameter(description = "id de la estación en la que se desea dejar la bicicleta") @RequestParam long stationId,
+                                                   @Parameter(description = "id de la bicicleta reservada") @RequestParam long bicycleId,
+                                                   @Parameter(description = "id del usuario que quiere devolver la bicicleta") @RequestParam long userId) {
         Optional<Station> opStation = stationService.findById(stationId);
         Optional<Bicycle> opBicycle = bicycleService.findById(bicycleId);
 
@@ -126,12 +156,10 @@ public class BicycleRestController {
                     & station.getBicycleCapacity() - station.getBicycles().size() >0;
 
             if (conditions){
-                RestTemplate restTemplate = new RestTemplate();
-                String url = "http://localhost:8081/api/users/" + userId + "/money";
-                //Change url when API is created
+                String url = URL_USERS_APIREST + userId + "/money";
 
                 try {
-                    ObjectNode data = restTemplate.patchForObject(url, 15, ObjectNode.class);
+                    ObjectNode data = restTemplate.patchForObject(url, DEPOSIT, ObjectNode.class);
 
                     String userName = data.get("name").asText();
 
