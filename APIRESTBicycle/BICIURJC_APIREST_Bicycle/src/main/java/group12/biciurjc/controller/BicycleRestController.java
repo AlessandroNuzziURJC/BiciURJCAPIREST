@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import group12.biciurjc.model.*;
 import group12.biciurjc.model.DTO.BookingDTO;
 import group12.biciurjc.model.DTO.ReturnDTO;
+import group12.biciurjc.model.DTO.BalanceDTO;
 import group12.biciurjc.service.BicycleService;
 import group12.biciurjc.service.BookingService;
 import group12.biciurjc.service.ReturnService;
@@ -15,12 +16,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
@@ -46,9 +50,7 @@ public class BicycleRestController {
     private ReturnService returnService;
 
     private static RestTemplate restTemplate = new RestTemplate();
-
     private static final String URL_USERS_APIREST = "http://localhost:8081/api/users/";
-
     private static final int PAYMENT = 5;
     private static final int DEPOSIT = PAYMENT * 2;
 
@@ -94,7 +96,12 @@ public class BicycleRestController {
 
                 try {
                     //At the moment, the price for booking a bike is fixed, 5€. Therefore, the deposit is 10€. Total = 15€
-                    ObjectNode data = restTemplate.patchForObject(url, -(PAYMENT + DEPOSIT), ObjectNode.class);
+                    ResponseEntity<ObjectNode> responseEntity = restTemplate.exchange(url, HttpMethod.PUT, new HttpEntity<BalanceDTO>(new BalanceDTO(-(PAYMENT + DEPOSIT))), ObjectNode.class);
+
+                    if (!responseEntity.getStatusCode().is2xxSuccessful())
+                        throw new HttpClientErrorException(responseEntity.getStatusCode());
+
+                    ObjectNode data = responseEntity.getBody();
                     String userName = data.get("name").asText();
 
                     station.deleteBicycle(bicycle);
@@ -165,8 +172,12 @@ public class BicycleRestController {
                 String url = URL_USERS_APIREST + userId + "/balance";
 
                 try {
-                    ObjectNode data = restTemplate.patchForObject(url, DEPOSIT, ObjectNode.class);
+                    ResponseEntity<ObjectNode> responseEntity = restTemplate.exchange(url, HttpMethod.PUT, new HttpEntity<BalanceDTO>(new BalanceDTO(DEPOSIT)), ObjectNode.class);
 
+                    if (!responseEntity.getStatusCode().is2xxSuccessful())
+                        throw new HttpClientErrorException(responseEntity.getStatusCode());
+
+                    ObjectNode data = responseEntity.getBody();
                     String userName = data.get("name").asText();
 
                     station.addBicycle(bicycle);

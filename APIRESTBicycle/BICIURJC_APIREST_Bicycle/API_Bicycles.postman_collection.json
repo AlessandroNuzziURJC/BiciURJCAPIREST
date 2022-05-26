@@ -1,0 +1,73 @@
+{
+	"info": {
+		"_postman_id": "aa778082-5b2a-45eb-9110-95815772bfb2",
+		"name": "API_Bicycles",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "createBooking",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{url2}}/bookings/?stationId=1&bicycleId=3&userId=1",
+					"host": [
+						"{{url2}}"
+					],
+					"path": [
+						"bookings",
+						""
+					],
+					"query": [
+						{
+							"key": "stationId",
+							"value": "1"
+						},
+						{
+							"key": "bicycleId",
+							"value": "3"
+						},
+						{
+							"key": "userId",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "createReturn",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{url2}}/returns/?stationId=1&bicycleId=3&userId=1",
+					"host": [
+						"{{url2}}"
+					],
+					"path": [
+						"returns",
+						""
+					],
+					"query": [
+						{
+							"key": "stationId",
+							"value": "1"
+						},
+						{
+							"key": "bicycleId",
+							"value": "3"
+						},
+						{
+							"key": "userId",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
