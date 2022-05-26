@@ -228,6 +228,7 @@ public class UserRestController {
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
             user.setActive(false);
+            userService.save(user);
 
             UserDTO userDTO = new UserDTO(user.getId(), user.getLogin(), user.getName(), user.getDate(), user.isActive(), user.getBalance());
             return new ResponseEntity<>(userDTO, HttpStatus.OK);
