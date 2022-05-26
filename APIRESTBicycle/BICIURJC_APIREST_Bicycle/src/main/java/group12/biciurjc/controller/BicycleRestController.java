@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -29,6 +30,7 @@ import static group12.biciurjc.model.Status.IN_BASE;
 import static group12.biciurjc.model.Status.RESERVED;
 
 @RestController
+@RequestMapping("/api")
 public class BicycleRestController {
 
     @Autowired
@@ -48,7 +50,7 @@ public class BicycleRestController {
     private static final String URL_USERS_APIREST = "http://localhost:8081/api/users/";
 
     private static final int PAYMENT = 5;
-    private static final int DEPOSIT = 10;
+    private static final int DEPOSIT = PAYMENT * 2;
 
     @Operation(summary = "Crea una nueva reserva para un usuario de una bicicleta asociada a una estación")
     @ApiResponses(value = {
@@ -71,7 +73,7 @@ public class BicycleRestController {
             content = @Content
         )
     })
-    @PostMapping("api/reservas/")
+    @PostMapping("/bookings/")
     public ResponseEntity<BookingDTO> bookBicycle(@Parameter(description = "id de la estación en la que se encuentra la bicicleta") @RequestParam long stationId,
                                                    @Parameter(description = "id de la bicicleta que se va a reservar") @RequestParam long bicycleId,
                                                    @Parameter(description = "id del usuario que quiere reservar la bicicleta") @RequestParam long userId) {
@@ -88,7 +90,7 @@ public class BicycleRestController {
 
             if (station.isActive() && bikeIsInBase && bikeIsInThisStation) {
 
-                String url = URL_USERS_APIREST + userId + "/money";
+                String url = URL_USERS_APIREST + userId + "/balance";
 
                 try {
                     //At the moment, the price for booking a bike is fixed, 5€. Therefore, the deposit is 10€. Total = 15€
@@ -97,6 +99,9 @@ public class BicycleRestController {
 
                     station.deleteBicycle(bicycle);
                     bicycle.setStatus(RESERVED);
+                    stationService.save(station);
+                    bicycleService.save(bicycle);
+
                     Booking booking = new Booking(station, bicycle, userId, userName, PAYMENT);
                     bookingService.save(booking);
 
@@ -141,10 +146,11 @@ public class BicycleRestController {
                     content = @Content
             )
     })
-    @PostMapping("/api/devoluciones/")
+    @PostMapping("/returns/")
     public ResponseEntity<ReturnDTO> returnBicycle(@Parameter(description = "id de la estación en la que se desea dejar la bicicleta") @RequestParam long stationId,
                                                    @Parameter(description = "id de la bicicleta reservada") @RequestParam long bicycleId,
                                                    @Parameter(description = "id del usuario que quiere devolver la bicicleta") @RequestParam long userId) {
+
         Optional<Station> opStation = stationService.findById(stationId);
         Optional<Bicycle> opBicycle = bicycleService.findById(bicycleId);
 
@@ -153,10 +159,10 @@ public class BicycleRestController {
             Bicycle bicycle = opBicycle.get();
 
             boolean conditions = station.isActive() & bicycle.getStatus().equals(RESERVED)
-                    & station.getBicycleCapacity() - station.getBicycles().size() >0;
+                    & (station.getBicycleCapacity() - station.getBicycles().size()) > 0;
 
             if (conditions){
-                String url = URL_USERS_APIREST + userId + "/money";
+                String url = URL_USERS_APIREST + userId + "/balance";
 
                 try {
                     ObjectNode data = restTemplate.patchForObject(url, DEPOSIT, ObjectNode.class);
@@ -164,11 +170,11 @@ public class BicycleRestController {
                     String userName = data.get("name").asText();
 
                     station.addBicycle(bicycle);
-                    bicycle.setStatus(IN_BASE);
+                    bicycleService.save(bicycle);
                     Return ret = new Return(station, bicycle, userId, userName);
                     returnService.save(ret);
 
-                    ReturnDTO returnDTO = new ReturnDTO(ret.getId(), stationId, bicycleId, userId, ret.getDate(), userName);
+                    ReturnDTO returnDTO = new ReturnDTO(ret.getId(), stationId, bicycleId, userId, userName, ret.getDate());
 
                     return new ResponseEntity<>(returnDTO, HttpStatus.CREATED);
                 } catch (HttpStatusCodeException exception) {

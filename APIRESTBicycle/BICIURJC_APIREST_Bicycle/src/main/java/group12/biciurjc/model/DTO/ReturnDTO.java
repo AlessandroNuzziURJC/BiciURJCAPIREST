@@ -8,16 +8,16 @@ public class ReturnDTO {
     private long stationId;
     private long bicycleId;
     private long userId;
-    private Date date;
     private String userName;
+    private Date date;
 
-    public ReturnDTO(long returnId, long stationId, long bicycleId, long userId, Date date, String userName) {
+    public ReturnDTO(long returnId, long stationId, long bicycleId, long userId, String userName, Date date) {
         this.returnId = returnId;
         this.stationId = stationId;
         this.bicycleId = bicycleId;
         this.userId = userId;
-        this.date = date;
         this.userName = userName;
+        this.date = date;
     }
 
     public long getReturnId() {
@@ -52,19 +52,19 @@ public class ReturnDTO {
         this.userId = userId;
     }
 
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
     public String getUserName() {
         return userName;
     }
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
 }

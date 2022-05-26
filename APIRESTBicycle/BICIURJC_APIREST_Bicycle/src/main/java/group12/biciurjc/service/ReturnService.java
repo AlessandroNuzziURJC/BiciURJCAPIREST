@@ -1,6 +1,5 @@
 package group12.biciurjc.service;
 
-import group12.biciurjc.model.Booking;
 import group12.biciurjc.model.Return;
 import group12.biciurjc.repository.ReturnRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,21 +12,21 @@ import java.util.Optional;
 public class ReturnService {
 
     @Autowired
-    private ReturnRepository returnRepository;
+    private ReturnRepository repository;
 
     public List<Return> findAll() {
-        return returnRepository.findAll();
+        return repository.findAll();
     }
 
     public void save(Return ret) {
-        returnRepository.save(ret);
+        repository.save(ret);
     }
 
     public void delete(long id) {
-        returnRepository.deleteById(id);
+        repository.deleteById(id);
     }
 
     public Optional<Return> findById(long id) {
-        return returnRepository.findById(id);
+        return repository.findById(id);
     }
 }

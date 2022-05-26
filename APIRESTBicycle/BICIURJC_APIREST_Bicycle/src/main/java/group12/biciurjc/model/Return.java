@@ -1,8 +1,5 @@
 package group12.biciurjc.model;
 
-import group12.biciurjc.service.BicycleService;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import javax.persistence.*;
 import java.sql.Date;
 
@@ -86,5 +83,4 @@ public class Return {
         long miliseconds = System.currentTimeMillis();
         date = new Date(miliseconds);
     }
-
 }
