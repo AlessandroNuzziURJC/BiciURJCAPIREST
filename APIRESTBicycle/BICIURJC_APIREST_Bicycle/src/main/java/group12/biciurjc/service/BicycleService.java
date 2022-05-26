@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-import static group12.biciurjc.model.Status.WITHOUT_BASE;
-
 @Service
 public class BicycleService {
 
