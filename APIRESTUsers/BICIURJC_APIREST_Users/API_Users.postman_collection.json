@@ -166,20 +166,23 @@
 			"request": {
 				"method": "PUT",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"balance\" : 10\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": "{{url}}/:id/balance?balance=+10",
+					"raw": "{{url}}/:id/balance",
 					"host": [
 						"{{url}}"
 					],
 					"path": [
 						":id",
 						"balance"
-					],
-					"query": [
-						{
-							"key": "balance",
-							"value": "+10"
-						}
 					],
 					"variable": [
 						{

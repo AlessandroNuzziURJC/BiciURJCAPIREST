@@ -3,6 +3,7 @@ package group12.biciurjc.controller;
 import group12.biciurjc.model.DTO.UserDTO;
 import group12.biciurjc.model.DTO.UserPostDTO;
 import group12.biciurjc.model.DTO.UserPutDTO;
+import group12.biciurjc.model.DTO.BalanceDTO;
 import group12.biciurjc.model.User;
 import group12.biciurjc.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -289,18 +290,18 @@ public class UserRestController {
     })
     @PutMapping("/{id}/balance")
     public ResponseEntity<UserDTO> updateBalance(@Parameter(description = "id del usuario") @PathVariable long id,
-                                                 @Parameter(description = "dinero a añadir o quitar del saldo del usuario") @RequestParam int balance) {
+                                                 @Parameter(description = "dinero a añadir o quitar del saldo del usuario") @RequestBody BalanceDTO balance) {
         if (userService.exist(id)){
             User user = userService.findById(id).orElseThrow();
 
-            if (balance < 0) {
-                if (user.isActive() && user.getBalance() >= (balance * -1)) {
-                    user.setBalance(doOperation(user.getBalance(), balance));
+            if (balance.getBalance() < 0) {
+                if (user.isActive() && user.getBalance() >= (balance.getBalance() * -1)) {
+                    user.setBalance(doOperation(user.getBalance(), balance.getBalance()));
                 } else {
                     return new ResponseEntity<>(HttpStatus.FORBIDDEN);
                 }
             } else {
-                user.setBalance(doOperation(user.getBalance(), balance));
+                user.setBalance(doOperation(user.getBalance(), balance.getBalance()));
             }
 
             userService.save(user);
@@ -315,4 +316,6 @@ public class UserRestController {
     private int doOperation(int userBalance, int balance) {
         return userBalance + balance;
     }
+
+
 }
