@@ -149,4 +149,25 @@ public class UserRestController {
         return ResponseEntity.noContent().build();
     }
 
+    //Pay bike
+    @PutMapping("/{id}/money")
+    public ResponseEntity<UserDTO> payBike(@PathVariable long id, @RequestParam double balance){
+        if (userService.exist(id)){
+            User user = userService.findById(id).orElseThrow();
+            if (user.isActive() && user.getBalance() >= balance){
+                user.setBalance(user.getBalance() - balance);
+                user.setBalance(user.getBalance() - (balance * 2));
+
+                userService.save(user);
+                UserDTO userDTO = new UserDTO(user.getName(), user.getId(), user.getBalance());
+
+                return new ResponseEntity<>(userDTO, HttpStatus.OK);
+            }else {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
 }
