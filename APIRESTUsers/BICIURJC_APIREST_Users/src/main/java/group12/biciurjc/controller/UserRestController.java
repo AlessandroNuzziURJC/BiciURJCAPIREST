@@ -170,4 +170,20 @@ public class UserRestController {
         }
     }
 
+    //
+    @PutMapping("/{id}/depositReturn")
+    public ResponseEntity<UserDTO> depositReturn(@PathVariable long id, @RequestParam double deposit){
+        if (userService.exist(id)){
+            User user = userService.findById(id).orElseThrow();
+            user.setBalance(user.getBalance() + deposit);
+
+            userService.save(user);
+            UserDTO userDTO = new UserDTO(user.getName(), user.getId(), user.getBalance());
+
+            return new ResponseEntity<>(userDTO, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
 }
