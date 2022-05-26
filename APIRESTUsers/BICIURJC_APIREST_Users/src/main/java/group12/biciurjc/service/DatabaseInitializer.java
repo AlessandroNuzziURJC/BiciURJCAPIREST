@@ -36,6 +36,8 @@ public class DatabaseInitializer {
         setProfileImage(user4, "/static/images/Nestor.jpg");
         setProfileImage(user5, "/static/images/Sara.jpg");
 
+        user1.setBalance(7000.00);
+
         userRepository.save(user1);
         userRepository.save(user2);
         userRepository.save(user3);

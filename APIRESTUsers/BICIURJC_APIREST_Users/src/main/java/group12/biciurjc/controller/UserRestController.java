@@ -85,9 +85,10 @@ public class UserRestController {
     public UserDTO createUser(@RequestBody User user) {
 
         User newUser = new User(user.getName(), passwordEncoder.encode(user.getEncondedPassword()), user.getBalance());
-        UserDTO userDTO = new UserDTO(user.getName(), user.getId(), user.getBalance());
 
         userService.save(newUser);
+
+        UserDTO userDTO = new UserDTO(newUser.getName(), newUser.getId(), newUser.getBalance());
 
         return userDTO;
     }
@@ -123,6 +124,7 @@ public class UserRestController {
 
             updatedUser.setNewDate(dbUser.getDate());
             updatedUser.setId(id);
+            updatedUser.setEncondedPassword(passwordEncoder.encode(updatedUser.getEncondedPassword()));
             userService.save(updatedUser);
             UserDTO userDTO = new UserDTO(updatedUser.getName(), updatedUser.getId(), updatedUser.getBalance());
 
