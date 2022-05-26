@@ -16,9 +16,6 @@ public class Return {
     @OneToOne
     private Bicycle bicycle;
 
-    @OneToOne
-    private Booking book;
-
     private long userId;
     private String userName;
     private Date date;
