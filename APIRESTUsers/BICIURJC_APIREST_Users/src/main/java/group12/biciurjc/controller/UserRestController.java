@@ -156,7 +156,6 @@ public class UserRestController {
             User user = userService.findById(id).orElseThrow();
             if (user.isActive() && user.getBalance() >= balance){
                 user.setBalance(user.getBalance() - balance);
-                user.setBalance(user.getBalance() - (balance * 2));
 
                 userService.save(user);
                 UserDTO userDTO = new UserDTO(user.getName(), user.getId(), user.getBalance());
@@ -170,7 +169,7 @@ public class UserRestController {
         }
     }
 
-    //
+    //Deposit bike
     @PutMapping("/{id}/depositReturn")
     public ResponseEntity<UserDTO> depositReturn(@PathVariable long id, @RequestParam double deposit){
         if (userService.exist(id)){
